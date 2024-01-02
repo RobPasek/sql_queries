@@ -1,0 +1,17 @@
+SELECT [Kronos_View].[APPLYDATE]
+	,[Kronos_View].[PAYCODENAME]
+	--,[HoursWorked] = sum([Kronos_View].[HoursWorked])
+	,[Kronos_View].[PERSONNUM]
+	,[Kronos_View].[PERSONFULLNAME]
+	,[Position$].[POSITION]
+	,[Position$].[DESCRIPTION]
+  FROM [Productivity_Report].[dbo].[Kronos_View]
+  Left JOIN [Productivity_Report].[dbo].[Position$]
+  ON [Productivity_Report].[dbo].[Kronos_View].[position] = [Productivity_Report].[dbo].[Position$].[POSITION]
+  where year(applydate)=2013 and personnum='1004'
+  group by [Kronos_View].[APPLYDATE]
+	,[Kronos_View].[PAYCODENAME]
+	,[Kronos_View].[PERSONNUM]
+	,[Kronos_View].[PERSONFULLNAME]
+	,[Position$].[POSITION]
+	,[Position$].[DESCRIPTION]

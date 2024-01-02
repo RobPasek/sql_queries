@@ -1,0 +1,52 @@
+USE [Productivity]
+GO
+Drop Table dbo.SoftMed_OutPatient_Coders_Only_Sums_Tbl_PreviousDay
+GO
+SELECT DISTINCT 
+                      Encoder_ID, SUM(enc_drg_weight) AS [Summed Outpatient Drg's], SUM(length_of_stay) AS [Summed Length of Stay], [InPatient Productivity], COUNT(bill_no) 
+                      AS [OutPatient Productivity]
+INTO dbo.SoftMed_OutPatient_Coders_Only_Sums_Tbl_PreviousDay
+FROM         dbo.SoftMed_OutPatient_Coders_Only
+WHERE (CONVERT(VARCHAR(10), enc_code_dt_tm, 110) = DATEADD(dd, - 1, DATEDIFF(dd, 0, GETDATE())))
+
+GROUP BY Encoder_ID, [InPatient Productivity]
+GO
+DROP TABLE
+dbo.SoftMed_InPatient_Only_RHO_Sums_Tbl_PreviousDay
+GO
+SELECT DISTINCT  dbo.SoftMed_InPatient_Only_RHO.Encoder_ID
+					  , SUM(dbo.SoftMed_InPatient_Only_RHO.enc_drg_weight) AS [Summed Inpatient Drg's], 
+                      SUM(dbo.SoftMed_InPatient_Only_RHO.length_of_stay) AS [Summed Length of Stay], SUM(dbo.SoftMed_InPatient_Only_RHO.length_of_stay) AS [InPatient Productivity], 
+                      dbo.SoftMed_InPatient_Only_RHO.[OutPatient Productivity]
+INTO dbo.SoftMed_InPatient_Only_RHO_Sums_Tbl_PreviousDay
+FROM         dbo.SoftMed_InPatient_Only_RHO
+                     
+WHERE (CONVERT(VARCHAR(10), enc_code_dt_tm, 110) = DATEADD(dd, - 1, DATEDIFF(dd, 0, GETDATE())))
+
+GROUP BY dbo.SoftMed_InPatient_Only_RHO.Encoder_ID, dbo.SoftMed_InPatient_Only_RHO.[OutPatient Productivity]
+
+GO
+
+DROP Table dbo.SoftMed_OutPatientCoders_Only_Previous_Day
+GO
+SELECT dbo.SoftMed_OutPatient_Coders_Only_Sums_Tbl_PreviousDay.[Encoder_ID]
+	  ,['Position_Staff - Coder$'].EE#
+      ,dbo.SoftMed_InPatient_Only_RHO_Sums_Tbl_PreviousDay.[Summed Inpatient Drg's] AS [InpatientDrgSum]
+	  ,dbo.SoftMed_OutPatient_Coders_Only_Sums_Tbl_PreviousDay.[Summed Outpatient Drg's] AS [OutpatientDrgSum]
+      ,dbo.SoftMed_InPatient_Only_RHO_Sums_Tbl_PreviousDay.[Summed Length of Stay] AS [InpatientLengthOfStay]
+	  ,dbo.SoftMed_OutPatient_Coders_Only_Sums_Tbl_PreviousDay.[Summed Length of Stay] AS [OutPatientLengtOfStay]
+	  ,dbo.SoftMed_InPatient_Only_RHO_Sums_Tbl_PreviousDay.[InPatient Productivity]/(5.9+ISNULL([dbo].[PayCodeSum_Daily].[Total OT],0)) AS [IpProductivity]
+      ,dbo.SoftMed_OutPatient_Coders_Only_Sums_Tbl_PreviousDay.[OutPatient Productivity]/(5.9+ISNULL([dbo].[PayCodeSum_Daily].[Total OT],0)) AS [OpProductivity]
+	  ,ISNULL([dbo].[PayCodeSum_Daily].[Reg-1] ,0) AS [Total REG-1]
+      ,ISNULL([dbo].[PayCodeSum_Daily].[Reg-2] ,0) AS [Total REG-2]
+      ,ISNULL([dbo].[PayCodeSum_Daily].[Total OT],0) AS [Total OT]
+  INTO dbo.SoftMed_OutPatientCoders_Only_Previous_Day
+  FROM dbo.SoftMed_OutPatient_Coders_Only_Sums_Tbl_PreviousDay
+  FULL JOIN dbo.SoftMed_InPatient_Only_RHO_Sums_Tbl_PreviousDay
+  ON dbo.SoftMed_OutPatient_Coders_Only_Sums_Tbl_PreviousDay.[Encoder_ID]= dbo.SoftMed_InPatient_Only_RHO_Sums_Tbl_PreviousDay.[Encoder_ID]
+  Left JOIN ['Position_Staff - Coder$']
+  ON dbo.SoftMed_OutPatient_Coders_Only_Sums_Tbl_PreviousDay.[Encoder_ID] = ['Position_Staff - Coder$'].enc_ID
+  Left JOIN [dbo].[PayCodeSum_Daily]
+  ON ['Position_Staff - Coder$'].EE# = [dbo].[PayCodeSum_Daily].[PERSONNUM]
+  
+GO

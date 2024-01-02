@@ -1,0 +1,46 @@
+USE Productivity
+GO
+
+SELECT     APPLYDATE
+			, PAYCODENAME
+			, SUM(TIMEINSECONDS) /3600.0 AS [Hours Worked]
+			, PERSONNUM
+			, [DBO].['Position_Staff - Coder$'].EE#
+			, PERSONFULLNAME
+			, LABORLEVELNAME2 AS position
+			, LABORLEVELDSC2 AS title
+			, PAYCODEID
+			, PERSONID
+			, CURRPAYPERIODSTART
+			, CURRPAYPERIODEND
+			, PREVPAYPERIODSTART
+			, PREVPAYPERIODEND
+INTO Coders_Only_Kronos
+FROM  [DBO].['Position_Staff - Coder$']       
+LEFT JOIN [CHOCNT-097].wfcdb.dbo.VP_TOTALS AS VP_TOTALS_1
+ON [DBO].['Position_Staff - Coder$'].EE# = PERSONNUM 
+WHERE     (PAYCODETYPE = 'P') 
+	AND (PAYCODENAME <> 'Previous Pay Period Approved') 
+	AND (PAYCODENAME <> '12HRDT-1') 
+	AND ( CAST((APPLYDATE) AS DATE) > '4/1/2014') 
+	AND ( CAST((APPLYDATE) AS DATE) < cast(getdate()as date))
+	
+GROUP BY APPLYDATE, [DBO].['Position_Staff - Coder$'].EE#, PAYCODENAME, TIMEINSECONDS, PERSONNUM, PERSONFULLNAME, LABORLEVELNAME2, LABORLEVELDSC2, PAYCODEID, PERSONID, 
+                      CURRPAYPERIODSTART, CURRPAYPERIODEND, PREVPAYPERIODSTART, PREVPAYPERIODEND
+
+GO
+
+SELECT     CAST((APPLYDATE) AS DATE) AS [APPLYDATE], PAYCODENAME, SUM([Hours Worked]) AS Hours, PERSONFULLNAME, PERSONNUM
+FROM         dbo.Coders_Only_Kronos
+WHERE     (PAYCODENAME = 'Reg-1') OR
+                      (PAYCODENAME = 'Reg-2') OR
+                      (PAYCODENAME = 'Reg-3') OR
+                      (PAYCODENAME = 'OT-1') OR
+                      (PAYCODENAME = 'HOL OT1') OR
+                      (PAYCODENAME = 'HOL OT2') AND ([Hours Worked] > '0')
+GROUP BY APPLYDATE, PERSONFULLNAME, PAYCODENAME, PERSONNUM
+
+GO
+
+DROP TABLE dbo.Coders_Only_Kronos
+Go

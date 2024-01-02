@@ -1,0 +1,5 @@
+USE [ProjectWebApp_Prod]
+GO
+
+SELECT * FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE
+WHERE TABLE_NAME = 'MSP_EpmInternalProjectHierarchies'

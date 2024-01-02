@@ -1,0 +1,27 @@
+select *  from prod901.kronosatst 
+
+SELECT e.company, e.employee, b.employee CHOC_E 
+FROM prod901.EMPLOYEE e 
+LEFT JOIN prod901.chocuser b
+ON b.employee = e.employee
+where (e.emp_status < 'T') 
+order by e.company, e.process_level, e.employee 
+
+SELECT t.PAYCODEID
+		, t.ENTEREDONDTM
+		, p.PERSONNUM 
+FROM [CHOCNT-097].[wfcdb].[dbo].TIMESHEETITEM AS t 
+INNER JOIN [CHOCNT-097].[wfcdb].[dbo].PERSON AS p 
+ON t.EMPLOYEEID = p.PERSONID 
+WHERE (t.PAYCODEID = '751' OR t.PAYCODEID = '752') --AND (p.PERSONNUM = '" & sEmployee & "') 
+AND (t.ENTEREDONDTM > DATEADD(year, - 1, GETDATE())) 
+ORDER BY t.ENTEREDONDTM DESC
+
+SELECT t.PAYCODEID
+		, t.ENTEREDONDTM
+FROM [CHOCNT-097].[wfcdb].[dbo].TIMESHEETITEM AS t 
+INNER JOIN [CHOCNT-097].[wfcdb].[dbo].PERSON AS p 
+ON t.EMPLOYEEID = p.PERSONID 
+WHERE (t.PAYCODEID = '802' OR t.PAYCODEID = '803') --AND (p.PERSONNUM = '" & sEmployee & "')
+AND (t.ENTEREDONDTM > DATEADD(year, - 1, GETDATE())) 
+ORDER BY t.ENTEREDONDTM DESC
